@@ -25,13 +25,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/shorten', [UrlController::class, 'shorten']);
-    Route::get('/convert/{shortUrl}', [UrlController::class, 'convert']);
     Route::get('/user/urls', [UrlController::class, 'showUserUrls']);
 
 });
 // Authentication
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/convert/{shortUrl}', [UrlController::class, 'convert']);
+
 
 
 

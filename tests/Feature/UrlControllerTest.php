@@ -39,14 +39,15 @@ class UrlControllerTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'id',
-                'user_id',
-                'original_url',
-                'short_url',
-                'visit_count',
-                'created_at',
-                'updated_at',
-            ]);
+                'data' => [
+                    'id',
+                    'user_id',
+                    'original_url',
+                    'short_url',
+                    'visit_count',
+                    'created_at',
+                    'updated_at',
+                ]]);
 
         $this->assertDatabaseHas('urls', [
             'original_url' => $this->url,
@@ -65,8 +66,7 @@ class UrlControllerTest extends TestCase
             'short_url' => 'abc123',
         ]);
 
-        $response = $this->withHeaders(['Authorization' => 'Bearer ' . $this->token])
-            ->getJson('/api/convert/abc123');
+        $response = $this->getJson('/api/convert/abc123');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -75,7 +75,7 @@ class UrlControllerTest extends TestCase
 
         $this->assertDatabaseHas('visits', [
             'url_id' => $url->id,
-            'visitor_ip' => '127.0.0.1', // Assuming you run tests locally
+            'visitor_ip' => '127.0.0.1',
         ]);
     }
 
@@ -101,7 +101,6 @@ class UrlControllerTest extends TestCase
      */
     public function test_fetch_user_urls()
     {
-        // Create a URL with visits for the user
         $url = Url::factory()->create(['user_id' => $this->user->id]);
         Visit::factory()->count(3)->create(['url_id' => $url->id]);
 

@@ -14,6 +14,12 @@ use Miladev\ApiResponse\ApiResponse;
 class AuthController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * Register user with email and password
+     * @param RegisterRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function register(RegisterRequest $request)
     {
         $user = User::create([
@@ -26,6 +32,11 @@ class AuthController extends Controller
         return $this->successResponse(data: ['token' => $token],statusCode: 201);
     }
 
+    /**
+     * Login user with email and password
+     * @param LoginRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function login(LoginRequest $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
@@ -38,6 +49,11 @@ class AuthController extends Controller
         return $this->successResponse(data: ['token' => $token]);
     }
 
+    /**
+     * Logout authenticated user with token
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Foundation\Application|\Illuminate\Http\Response
+     */
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

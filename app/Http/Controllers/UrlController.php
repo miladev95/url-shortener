@@ -11,6 +11,11 @@ class UrlController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * shorting url
+     * @param UrlShortenRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function shorten(UrlShortenRequest $request)
     {
         $url = auth()->user()->urls()->create([
@@ -19,9 +24,14 @@ class UrlController extends Controller
             'visit_count' => 0,
         ]);
 
-        return response()->json($url, 201);
+        return $this->successResponse(data:$url , statusCode: 201);
     }
 
+    /**
+     * Convert short url with original one
+     * @param $shortUrl
+     * @return \Illuminate\Http\Response
+     */
     public function convert($shortUrl)
     {
         $url = Url::where('short_url', $shortUrl)->first();
@@ -30,7 +40,7 @@ class UrlController extends Controller
             // Increment visit count
             $url->increment('visit_count');
 
-            // Record the visit
+            // Store visitor ip
             $url->visits()->create([
                 'visitor_ip' => request()->ip(),
             ]);
@@ -41,10 +51,15 @@ class UrlController extends Controller
         }
     }
 
+    /**
+     * Show authenticated user urls and visits
+     * @return \Illuminate\Http\Response
+     */
     public function showUserUrls()
     {
         $user = auth()->user();
 
+        // fetch user urls with visits
         $userUrls = $user->urls()->with('visits')->get();
 
         return $this->successResponse(data: ['user_urls' => $userUrls]);
