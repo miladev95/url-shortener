@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UrlShortenRequest;
 use App\Models\Url;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Miladev\ApiResponse\ApiResponse;
 
 class UrlController extends Controller
 {
-    public function shorten(Request $request)
-    {
-        $request->validate([
-            'original_url' => 'required|url',
-        ]);
+    use ApiResponse;
 
+    public function shorten(UrlShortenRequest $request)
+    {
         $url = auth()->user()->urls()->create([
             'original_url' => $request->input('original_url'),
             'short_url' => Str::random(6),
@@ -24,18 +22,22 @@ class UrlController extends Controller
         return response()->json($url, 201);
     }
 
-    public function convert($shortCode)
+    public function convert($shortUrl)
     {
-        $url = Url::where('short_url', $shortCode)->firstOrFail();
+        $url = Url::where('short_url', $shortUrl)->first();
 
-        // Increment visit count
-        $url->increment('visit_count');
+        if ($url) {
+            // Increment visit count
+            $url->increment('visit_count');
 
-        // Record the visit
-        $url->visits()->create([
-            'visitor_ip' => request()->ip(),
-        ]);
+            // Record the visit
+            $url->visits()->create([
+                'visitor_ip' => request()->ip(),
+            ]);
 
-        return response()->json(['original_url' => $url->original_url]);
+            return $this->successResponse(['original_url' => $url->original_url]);
+        } else {
+            return $this->failResponse(message: 'Url not found', statusCode: 404);
+        }
     }
 }

@@ -26,8 +26,12 @@ class UrlControllerTest extends TestCase
         $this->token = $this->user->createToken('test-token')->plainTextToken;
     }
 
-    /** @test */
-    public function it_can_shorten_url()
+
+    /**
+     * test shorten url with authenticated user
+     * @return void
+     */
+    public function test_shorten_url()
     {
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $this->token])
             ->postJson('/api/shorten', ['original_url' => $this->url]);
@@ -48,8 +52,11 @@ class UrlControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_convert_shortened_url()
+    /**
+     * test convert short url to main url
+     * @return void
+     */
+    public function test_convert_shortened_url()
     {
         $url = Url::factory()->create([
             'user_id' => $this->user->id,
@@ -62,13 +69,29 @@ class UrlControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'original_url' => $this->url,
+                'data' => ['original_url' => $this->url],
             ]);
 
         $this->assertDatabaseHas('visits', [
             'url_id' => $url->id,
             'visitor_ip' => '127.0.0.1', // Assuming you run tests locally
         ]);
+    }
+
+
+    /**
+     * test convert non exists url
+     * @return void
+     */
+    public function test_convert_url_not_found()
+    {
+        $response = $this->withHeaders(['Authorization' => 'Bearer ' . $this->token])
+            ->getJson('/api/convert/abc1234');
+
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'Url not found',
+            ]);
     }
 }
 

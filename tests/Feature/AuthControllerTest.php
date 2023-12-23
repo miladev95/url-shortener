@@ -11,8 +11,11 @@ class AuthControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function it_can_register_a_user()
+    /**
+     * test register
+     * @return void
+     */
+    public function test_register_a_user()
     {
         $userData = [
             'email' => 'john.doe@example.com',
@@ -22,13 +25,16 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('/api/register', $userData);
 
         $response->assertStatus(201)
-            ->assertJsonStructure(['token']);
+            ->assertJsonStructure(['data' => ['token']]);
     }
 
-    /** @test */
-    public function it_can_login_a_user()
+    /**
+     * test login
+     * @return void
+     */
+    public function test_login_a_user()
     {
-        $user = User::factory()->create([
+        User::factory()->create([
             'email' => 'john.doe@example.com',
             'password' => bcrypt('password123'),
         ]);
@@ -41,11 +47,14 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('/api/login', $loginData);
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['token']);
+            ->assertJsonStructure(['data' => ['token']]);
     }
 
-    /** @test */
-    public function it_can_logout_a_user()
+    /**
+     * test log out
+     * @return void
+     */
+    public function test_logout_a_user()
     {
         $user = User::factory()->create();
 
@@ -58,8 +67,11 @@ class AuthControllerTest extends TestCase
             ->assertJson(['message' => 'Logged out']);
     }
 
-    /** @test */
-    public function it_requires_valid_credentials_for_login()
+    /**
+     * test login validation
+     * @return void
+     */
+    public function test_requires_valid_credentials_for_login()
     {
         $loginData = [
             'email' => 'nonexistent@example.com',

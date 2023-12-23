@@ -3,20 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Miladev\ApiResponse\ApiResponse;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    use ApiResponse;
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
         $user = User::create([
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
@@ -24,30 +23,25 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return response()->json(['token' => $token], 201);
+        return $this->successResponse(data: ['token' => $token],statusCode: 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return $this->failResponse(message: 'Invalid credentials', statusCode: 401);
         }
 
         $user = User::where('email', $request->input('email'))->firstOrFail();
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return response()->json(['token' => $token]);
+        return $this->successResponse(data: ['token' => $token]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
 
-        return response()->json(['message' => 'Logged out']);
+        return $this->successResponse(message: 'Logged out');
     }
 }
