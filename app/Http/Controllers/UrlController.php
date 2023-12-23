@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UrlShortenRequest;
 use App\Models\Url;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Miladev\ApiResponse\ApiResponse;
 
@@ -24,7 +26,7 @@ class UrlController extends Controller
             'visit_count' => 0,
         ]);
 
-        return $this->successResponse(data:$url , statusCode: 201);
+        return $this->successResponse(data: $url, statusCode: 201);
     }
 
     /**
@@ -34,20 +36,26 @@ class UrlController extends Controller
      */
     public function convert($shortUrl)
     {
-        $url = Url::where('short_url', $shortUrl)->first();
+        try {
+            // Check if the URL is in cache
+            $url = Cache::remember("url:$shortUrl", now()->addMinutes(60), function () use ($shortUrl) {
+                return Url::where('short_url', $shortUrl)->firstOrFail();
+            });
 
-        if ($url) {
             // Increment visit count
             $url->increment('visit_count');
 
-            // Store visitor ip
+            // Record the visit
             $url->visits()->create([
                 'visitor_ip' => request()->ip(),
             ]);
 
+            // Reload the URL to get the updated visit_count
+            $url->refresh();
+
             return $this->successResponse(['original_url' => $url->original_url]);
-        } else {
-            return $this->failResponse(message: 'Url not found', statusCode: 404);
+        }catch (ModelNotFoundException $e) {
+            return $this->failResponse(message: 'Url not found',statusCode: 404);
         }
     }
 
