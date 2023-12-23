@@ -40,4 +40,13 @@ class UrlController extends Controller
             return $this->failResponse(message: 'Url not found', statusCode: 404);
         }
     }
+
+    public function showUserUrls()
+    {
+        $user = auth()->user();
+
+        $userUrls = $user->urls()->with('visits')->get();
+
+        return $this->successResponse(data: ['user_urls' => $userUrls]);
+    }
 }

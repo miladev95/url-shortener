@@ -25,7 +25,7 @@ class UrlFactory extends Factory
             },
             'original_url' => $this->faker->url,
             'short_url' => Str::random(6),
-            'visit_count' => $this->faker->numberBetween(0, 1000),
+            'visit_count' => 0,
         ];
     }
 }
