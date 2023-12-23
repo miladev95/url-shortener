@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UrlController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
+
+
+// Protected routes (require authentication)
+Route::middleware('auth:sanctum')->group(function () {
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::post('/shorten', [UrlController::class, 'shorten']);
+    Route::get('/convert/{shortUrl}', [UrlController::class, 'convert']);
 });
+// Authentication
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+
+
